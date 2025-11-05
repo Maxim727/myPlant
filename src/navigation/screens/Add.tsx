@@ -1,6 +1,7 @@
 import { Text } from "@react-navigation/elements";
+import { useFocusEffect } from "@react-navigation/native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Button, FlatList, Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export function Add() {
@@ -8,6 +9,15 @@ export function Add() {
   const [permission, requestPermission] = useCameraPermissions();
   const [images, setImages] = useState<string[]>([]);
   const cameraRef = useRef<CameraView>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsCameraOpen(false);
+      };
+    }, [])
+  );
 
   if (!permission) {
     // Camera permissions are still loading
@@ -19,7 +29,7 @@ export function Add() {
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title='grant permission' />
+        <Button onPress={requestPermission} title={'grant permission'} />
       </View>
     );
   }
@@ -37,21 +47,30 @@ export function Add() {
     }
   }
 
-  return (
-    <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing} ref={cameraRef} />
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={takePicture}>
-          <Text style={styles.text}>Take</Text>
+  if (!isCameraOpen) {
+    return (
+      <View style={styles.identifyContainer}>
+        <TouchableOpacity style={styles.identifyButton} onPress={() => setIsCameraOpen(true)}>
+          <Text style={styles.identifyButtonText}>Add Plant</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.galleryContainer}>
-        <FlatList
-          data={images}
-          horizontal
-          renderItem={({ item }) => <Image source={{ uri: item }} style={styles.image} />}
-          keyExtractor={(item) => item}
-        />
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity style={styles.backButton} onPress={() => setIsCameraOpen(false)}>
+            <Text style={styles.text}>Back</Text>
+          </TouchableOpacity>
+        </View>
+      </CameraView>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.identifyCameraButton} onPress={takePicture}>
+          <Image source={require('../../assets/camera.png')} style={{width: 24, height: 24, tintColor: 'white'}} />
+          <Text style={{...styles.identifyButtonText, marginLeft: 10}}>Identify</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -62,6 +81,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  identifyContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 50,
+  },
   message: {
     textAlign: "center",
     paddingBottom: 10,
@@ -69,14 +93,26 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
+  headerButtons: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    alignItems: "center",
+  },
+  backButton: {},
+  toggleButton: {},
   buttonContainer: {
     position: "absolute",
-    bottom: 128,
-    flexDirection: "row",
-    backgroundColor: "transparent",
+    bottom: 50,
     width: "100%",
-    paddingHorizontal: 64,
     justifyContent: "center",
+    alignItems: 'center',
   },
   button: {
     alignItems: "center",
@@ -98,5 +134,45 @@ const styles = StyleSheet.create({
     height: 100,
     margin: 5,
     borderRadius: 10,
+  },
+  identifyButton: {
+    backgroundColor: "#2E8B57",
+    paddingVertical: 20,
+    paddingHorizontal: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    marginHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    justifyContent: "center",
+  },
+  identifyButtonText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  identifyCameraButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    paddingVertical: 20,
+    paddingHorizontal: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
 });
