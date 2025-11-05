@@ -24,7 +24,7 @@ const HomeTabs = createBottomTabNavigator({
     Home: {
       screen: Home,
       options: {
-        title: "Feed",
+        title: "Home",
         tabBarIcon: ({ color, size }) => (
           <Image
             source={newspaper}
@@ -40,6 +40,7 @@ const HomeTabs = createBottomTabNavigator({
     Updates: {
       screen: Updates,
       options: {
+        title: "Timeline",
         tabBarIcon: ({ color, size }) => (
           <Image
             source={bell}
